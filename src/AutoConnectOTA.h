@@ -33,7 +33,7 @@ class AutoConnectOTA : public AutoConnectUploadHandler {
     OTA_FAIL                /**< Failed to save binary updater by Update class */
   } AC_OTAStatus_t;
 
-  AutoConnectOTA() : _status(OTA_IDLE), _tickerPort(-1), _tickerOn(LOW) {}
+  AutoConnectOTA() : _status(OTA_IDLE), _tickerPort(-1), _tickerOn(LOW), _watchdog(false) {}
   ~AutoConnectOTA();
   void  attach(AutoConnect& portal);
   String  error(void) const { return _err; }                /**< Returns current error string */
@@ -77,7 +77,7 @@ class AutoConnectOTA : public AutoConnectUploadHandler {
   uint8_t _tickerOn;            /**< A signal for flicker turn on */
   String  _binName;             /**< An updater file name */
   String  _err;                 /**< Occurred error stamp */
-
+  bool    _watchdog;            /**< Watchdog status */
   static const ACPage_t         _pageUpdate  PROGMEM;
   static const ACElementProp_t  _elmUpdate[] PROGMEM;
   static const ACPage_t         _pageResult  PROGMEM;

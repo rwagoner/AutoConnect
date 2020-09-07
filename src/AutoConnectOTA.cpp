@@ -15,6 +15,7 @@
 #include <Update.h>
 #endif
 #include <StreamString.h>
+#include "esp_task_wdt.h"
 #include "AutoConnectOTA.h"
 #include "AutoConnectOTAPage.h"
 
@@ -48,6 +49,8 @@ void AutoConnectOTA::attach(AutoConnect& portal) {
 
   portal.join(*_auxUpdate.get());
   portal.join(*_auxResult.get());
+
+  _watchdog = esp_task_wdt_status(NULL) == ESP_OK ? true : false;
 }
 
 /**
@@ -126,6 +129,10 @@ bool AutoConnectOTA::_open(const char* filename, const char* mode) {
       pinMode(static_cast<uint8_t>(_tickerPort), OUTPUT);
     _status = OTA_START;
     AC_DBG("%s updating start\n", filename);
+    if(_watchdog) {
+      AC_DBG("disabling watchdog\n");
+      esp_task_wdt_delete(NULL);
+    }
     return true;
   }
   _setError();
@@ -178,6 +185,10 @@ void AutoConnectOTA::_close(const HTTPUploadStatus status) {
   AC_DBG_DUMB(". %s\n", _err.c_str());
   if (_err.length())
       Update.end(false);
+  if(_watchdog) {
+    AC_DBG("enabling watchdog\n");
+    esp_task_wdt_add(NULL);
+  }
   if (_tickerPort != -1)
     digitalWrite(_tickerPort, !_tickerOn);
 }
